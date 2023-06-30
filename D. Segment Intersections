@@ -1,0 +1,143 @@
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <vector>
+#include <stack>
+#include <queue>
+#include <math.h>
+#include <set>
+#include <map>
+#include <string>
+#include <tuple>
+#include <numeric>
+#include <climits>
+#include <bitset>
+#include <iomanip>
+#include <random>
+#include <ctime>
+using namespace std;
+
+//change the long long to int if you need to save memory/time really badly
+typedef long long ll;
+typedef long double ld;
+
+const ll MAXN = 105;
+const ll INF = 1e14;
+const ll MOD = 1e9 + 7;
+
+ll __gcd(ll a, ll b) {
+    if (b == 0) {
+        return a;
+    }
+    
+    if (a == 0) {
+        return b;
+    }
+    
+    if (a < b) {
+        swap(a, b);
+    }
+    
+    return __gcd(b, a % b);
+}
+
+ll maxi(ll a, ll b) {
+    if (a >= b) {
+        return a;
+    } else {
+        return b;
+    }
+}
+
+//Given a pair of intervals, returns the sum of the lengths of the intervals (overlapping lengths get counted twice) and the length of the range between the smallest point and largest point in the intervals.
+pair<ll, ll> comm(pair<ll, ll> p1, pair<ll, ll> p2) {
+    ll tot = p1.second-p1.first + p2.second-p2.first;
+    ll ran = max(p1.second, p2.second) - min(p1.first, p2.first);
+    
+    
+    return {tot, ran};
+}
+
+void solve(ll ca)
+{
+    ll n, k;
+    cin >> n >> k;
+    
+    //Read intervals
+    pair<ll, ll> a; cin >> a.first >> a.second;
+    pair<ll, ll> b; cin >> b.first >> b.second;
+    
+    //Store results for original pair of intervals
+    pair<ll, ll> res = comm(a, b);
+    ll val = max(0LL, res.first - res.second); //total intersection in 1 copy
+    if (n*val >= k) { //If the total intersection sum over all n copies is >= k, then we don't need to use any moves
+        cout << 0LL << endl;
+        return;
+    }
+    
+    //inters is false if the 2 intervals don't share any overlapping length and true if they do share some overlapping length
+    bool inters = false;
+    if (res.first > res.second) {
+        inters = true;
+    }
+    
+    //answer
+    ll ans = 1e18;
+    
+    //Iterate over the number of copies of the original pair that we use
+    for (ll i = 1; i <= n; i++) {
+        //Connect all i copies if the original pair wasn't connected
+        ll tans = i * max(0LL, res.second - res. first);
+        
+        //diff is the #of remaining total intersection length we need over all copies to reach k
+        ll diff = k - i*val;
+        
+        ll tspc; //tsp is the amount of extra intersection space we can get over all i copies of the original pair by extending each copy of the pair to the range of its union.
+        if (inters) { //If the 2 intervals intersect, then each copy of the pair of intervals will contribute 2 * (sum of the length of intervals) - (length of range between smallest and largest point in any of the intervals)
+            tspc = i * (2*res.second - res.first);
+        } else { //Otherwise if the 2 intervals originally didn't intersect, then each copy of the pair of intervals will contribute the length of the range between the smallest and largest point in any of the two intervals.
+            tspc = i * (res.second);
+        }
+        
+        //If the amount of extra intersection space will allow us to reach k, then update our answer. Note that each unit of extra intersection length costs only 1 move in stage 2.
+        if (tspc >= diff) {
+            ans = min(ans, tans+diff);
+            continue;
+        }
+        
+        //Increase the answer by the #of moves for extending all copies of the pair of intervals
+        tans += tspc;
+        
+        //Get the amount of extra intersection length needed, and use 1 copy of the pair of intervals to reach that length. Note that each unit of extra intersection length costs 2 moves in stage 3.
+        diff = k - i*val - tspc;
+        ans = min(ans, tans + 2*diff);
+    }
+    
+    //Print the best answer
+    cout << ans << endl;
+}
+
+int main()
+{
+    //mt19937 rng(0);
+    
+    //Fast IO
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cout.tie(NULL);
+
+    
+    /*
+     freopen("sabotage.in", "r", stdin);
+     freopen("sabotage.out", "w", stdout);
+     */
+
+    ll t = 1;
+    cin >> t;
+    
+    ll co = 1;
+    while (t--) {
+        solve(co);
+        ++co;
+    }
+}
