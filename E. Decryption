@@ -1,0 +1,186 @@
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <vector>
+#include <stack>
+#include <queue>
+#include <math.h>
+#include <set>
+#include <map>
+#include <string>
+#include <tuple>
+#include <numeric>
+#include <climits>
+#include <bitset>
+#include <iomanip>
+#include <random>
+#include <ctime>
+using namespace std;
+
+//change the long long to int if you need to save memory/time really badly
+typedef long long ll;
+typedef long double ld;
+
+const ll MAXN = 2005;
+const ll INF = 1e16;
+const ll MOD = 1e9 + 7;
+
+ll __gcd(ll a, ll b) {
+    if (b == 0) {
+        return a;
+    }
+    
+    if (a == 0) {
+        return b;
+    }
+    
+    if (a < b) {
+        swap(a, b);
+    }
+    
+    return __gcd(b, a % b);
+}
+
+vector<pair<ll, ll>> pfact;
+map<ll, ll> rev;
+map<ll, set<ll>> dif;
+set<ll> factors;
+
+ll numb;
+void recurse(ll ind, ll smal) {
+    if (ind == pfact.size()) {
+        if (numb != 1) {
+            factors.insert(numb);
+            rev[numb] = smal;
+            dif[smal].insert(numb);
+        }
+        return;
+    }
+    
+    ll tnumb = 1;
+    for (ll j = 0; j <= pfact[ind].second; j++) {
+        numb *= tnumb;
+        
+        if (j > 0 && smal == -1) {
+            recurse(ind+1, ind);
+        } else {
+            recurse(ind+1, smal);
+        }
+        
+        numb /= tnumb;
+        
+        tnumb *= pfact[ind].first;
+    }
+}
+
+void solve(ll ca)
+{
+    ll n; cin >> n;
+    ll orign = n;
+    pfact.clear();
+    rev.clear();
+    dif.clear();
+    factors.clear();
+    for (ll i = 2; i*i <= n; ++i) {
+        if (n < i) {
+            break;
+        }
+        
+        pair<ll, ll> tem = {i, 0};
+        while (n != 1 && n % i == 0) {
+            n/=i;
+            tem.second++;
+        }
+        if (tem.second > 0) {
+            pfact.push_back(tem);
+        }
+    }
+    
+    if (n > 1) {
+        pfact.push_back({n, 1});
+    }
+    
+    numb = 1;
+    recurse(0, -1);
+    
+    if (pfact.size() == 1) {
+        for (auto el: factors) {
+            cout << el << " ";
+        }
+        cout << endl;
+        cout << 0 << endl;
+        return;
+    }
+    
+    if (pfact.size() == 2) {
+        if (pfact[0].second == 1 && pfact[1].second == 1) {
+            cout << pfact[0].first << " " << pfact[1].first << " " << orign << endl;
+            cout << 1 << endl;
+        } else {
+            for (auto el: dif[0]) {
+                if (el == orign || el == pfact[0].first*pfact[1].first) {
+                    continue;
+                }
+                cout << el << " ";
+            }
+            cout << pfact[0].first*pfact[1].first << " ";
+            for (auto el: dif[1]) {
+                cout << el << " ";
+            }
+            cout << orign << endl;
+            cout << 0 << endl;
+        }
+        
+        
+        return;
+    }
+    
+    
+    vector<ll> seperators;
+    for (ll i = 1; i < pfact.size(); i++) {
+        seperators.push_back(pfact[i].first*pfact[i-1].first);
+        factors.erase(pfact[i].first*pfact[i-1].first);
+        dif[rev[pfact[i].first*pfact[i-1].first]].erase(pfact[i].first*pfact[i-1].first);
+    }
+    
+    for (ll i = 1; i < pfact.size(); i++) {
+        cout << seperators[i-1] << " ";
+        for (auto el: dif[i]) {
+            cout << el << " ";
+        }
+    }
+    cout << pfact.back().first*pfact[0].first << " ";
+    for (auto el: dif[0]) {
+        if (el == pfact.back().first*pfact[0].first) {
+            continue;
+        }
+        cout << el << " ";
+    }
+    cout << endl;
+    cout << 0 << endl;
+}
+
+int main()
+{
+    //mt19937 rng(0);
+    
+    //Fast IO
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cout.tie(NULL);
+
+    
+    /*
+     freopen("sabotage.in", "r", stdin);
+     freopen("sabotage.out", "w", stdout);
+     */
+
+    ll t = 1;
+    cin >> t;
+    
+    ll co = 1;
+    while (t--) {
+        solve(co);
+        ++co;
+    }
+}
