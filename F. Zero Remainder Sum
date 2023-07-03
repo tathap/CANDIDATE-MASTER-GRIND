@@ -1,0 +1,140 @@
+/*#pragma GCC optimize("Ofast,unroll-loops")
+#pragma GCC target("avx,avx2,fma")
+*/
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <vector>
+#include <stack>
+#include <queue>
+#include <math.h>
+#include <set>
+#include <map>
+#include <string>
+#include <tuple>
+#include <numeric>
+#include <climits>
+#include <bitset>
+#include <iomanip>
+#include <random>
+#include <ctime>
+ 
+using namespace std;
+ 
+//change the long long to int if you need to save memory/time really badly
+typedef long long ll;
+ 
+const ll MAXN = 300005;
+const ll INF = 1e16;
+
+void solve(ll ca)
+{
+    ll n, m, k;
+    cin >> n >> m >> k;
+    
+    ll a[n][m];
+    for (ll i = 0; i < n; i++) {
+        for (ll j = 0; j < m; j++) {
+            cin >> a[i][j];
+        }
+    }
+    
+    ll allowed = m/2;
+    ll dp[n][allowed+1][k]; //dp[i][j][l] is the max sum you can make in row i such that it's sum is congruent to l modulo k and you used j values
+    
+    for (ll ro = 0; ro < n; ro++) {
+        for (ll j = 0; j <= allowed; j++) {
+            for (ll l = 0; l < k; l++) {
+                dp[ro][j][l] = -INF;
+            }
+        }
+        
+        dp[ro][0][0] = 0;
+        
+        for (ll co = 0; co < m; co++) {
+            ll dp2[allowed+1][k]; //dp[i][j][l] is the max sum you can make in row i such that it's sum is congruent to l modulo k and you used j values
+            for (ll j = 0; j <= allowed; j++) {
+                for (ll l = 0; l < k; l++) {
+                    dp2[j][l] = -INF;
+                }
+            }
+            
+            for (ll b = 0; b <= allowed; b++) {
+                for (ll c = 0; c < k; c++) {
+                    dp2[b][c] = dp[ro][b][c];
+                    //use current element
+                    ll newmod = (c-a[ro][co] + 10000*k)%k;
+                    if (b > 0 && dp[ro][b-1][newmod] != -INF) {
+                        dp2[b][c] = max(dp2[b][c], dp[ro][b-1][newmod] + a[ro][co]);
+                    }
+                }
+            }
+            
+            for (ll j = 0; j <= allowed; j++) {
+                for (ll l = 0; l < k; l++) {
+                    dp[ro][j][l] = dp2[j][l];
+                }
+            }
+        }
+    }
+    /*
+    for (ll ro = 0; ro < n; ro++) {
+        for (ll i = 0; i <= allowed; i++) {
+            for (ll j = 0; j < k; j++) {
+                cout << dp[ro][i][j] << " ";
+            }
+            cout << endl;
+        }
+        cout << endl;
+        cout << endl;
+    }*/
+    
+    ll dp2[n+1][k]; //dp2[i][j] is the max sum using first i rows with modulo residue j
+    for (ll i = 0; i <= n; i++) {
+        for (ll j = 0; j < k; j++) {
+            dp2[i][j] = -INF;
+        }
+    }
+    dp2[0][0] = 0;
+    
+    for (ll i = 1; i <= n; i++) {
+        for (ll j = 0; j < k; j++) {
+            dp2[i][j] = dp2[i-1][j];
+            for (ll a = 0; a < k; a++) {
+                ll best = -INF;
+                for (ll b = 0; b <= allowed; b++) {
+                    best = max(best, dp[i-1][b][a]);
+                }
+                if (best == -INF) {
+                    continue;
+                }
+                
+                ll newmod = (j-a + 10000*k)%k;
+                if (dp2[i-1][newmod] != -INF) {
+                    dp2[i][j] = max(dp2[i][j], dp2[i-1][newmod] + best);
+                }
+            }
+        }
+    }
+    
+    cout << dp2[n][0] << endl;
+}
+ 
+int main()
+{
+    mt19937 rng(0);
+    
+    //Fast IO
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cout.tie(NULL);
+ 
+    ll t = 1;
+    //cin >> t;
+    
+    ll co = 1;
+    while (t--) {
+        solve(co);
+        ++co;
+    }
+}
