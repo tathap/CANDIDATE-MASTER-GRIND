@@ -1,0 +1,110 @@
+/*#pragma GCC optimize("Ofast,unroll-loops")
+#pragma GCC target("avx,avx2,fma")
+*/
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <vector>
+#include <stack>
+#include <queue>
+#include <math.h>
+#include <set>
+#include <map>
+#include <string>
+#include <tuple>
+#include <numeric>
+#include <climits>
+#include <bitset>
+#include <iomanip>
+#include <random>
+#include <ctime>
+ 
+using namespace std;
+ 
+//change the long long to int if you need to save memory/time really badly
+typedef long long ll;
+ 
+const ll MAXN = 2e5 + 5;
+const ll INF = 1e16;
+
+ll n;
+ll a[MAXN];
+
+ll recurse(ll le, ll ri, ll cbit) {
+    ll len = ri-le+1;
+    
+    //Base case
+    if (len == 1) {
+        return 0;
+    }
+    
+    if (len == 2) {
+        return 0;
+    }
+    
+    ll lo = le; ll hi = ri;
+    lo--;
+    
+    while (lo < hi) {
+        ll mid = lo + (hi - lo + 1)/2;
+        
+        if (a[mid] & (1LL << cbit)) {
+            //false
+            hi = mid-1;
+        } else {
+            lo = mid;
+        }
+    }
+    
+    //lo is the largest index such that the number at that position has a 0 at the current bit
+    
+    //All 0's at the current bit
+    if (lo == le-1) {
+        return recurse(le, ri, cbit-1);
+    }
+    
+    //All 1's at the current bit
+    if (lo == ri) {
+        return recurse(le, ri, cbit-1);
+    }
+
+    ll val1 = recurse(le, lo, cbit-1);
+    ll len1 = lo-le+1;
+    ll val2 = recurse(lo+1, ri, cbit-1);
+    ll len2 = ri-(lo+1)+1;
+    
+    //Recursive formula
+    ll ret = min(len1-1+val2, len2-1+val1);
+    return ret;
+}
+
+void solve(ll ca)
+{
+    cin >> n;
+    for (ll i = 0; i < n; i++) {
+        cin >> a[i];
+    }
+    
+    sort(a, a+n);
+    
+    cout << recurse(0, n-1, 63) << endl;
+}
+ 
+int main()
+{
+    mt19937 rng(0);
+    
+    //Fast IO
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cout.tie(NULL);
+ 
+    ll t = 1;
+    //cin >> t;
+    
+    ll co = 1;
+    while (t--) {
+        solve(co);
+        ++co;
+    }
+}
