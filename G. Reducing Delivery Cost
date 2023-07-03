@@ -1,0 +1,160 @@
+/*#pragma GCC optimize("Ofast,unroll-loops")
+#pragma GCC target("avx,avx2,fma")
+*/
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <vector>
+#include <stack>
+#include <queue>
+#include <math.h>
+#include <set>
+#include <map>
+#include <string>
+#include <tuple>
+#include <numeric>
+#include <climits>
+#include <bitset>
+#include <iomanip>
+#include <random>
+#include <ctime>
+ 
+using namespace std;
+ 
+//change the long long to int if you need to save memory/time really badly
+typedef long long ll;
+ 
+const ll MAXN = 1005;
+const ll INF = 1e16;
+
+ll n, m, k;
+set<pair<ll, ll>> adj[MAXN];
+vector<pair<ll, ll>> routes;
+
+ll dist[MAXN][MAXN];
+
+void dijakstra(ll src) {
+    priority_queue<pair<ll, ll>> pq;
+    pq.push({0, src});
+    
+    while (!pq.empty()) {
+        pair<ll, ll> cur = pq.top();
+        cur.first *= -1;
+
+        pq.pop();
+        
+        if (dist[src][cur.second] <= cur.first) {
+            continue;
+        }
+        
+        dist[src][cur.second] = cur.first;
+        for (auto el: adj[cur.second]) {
+            ll ncost = cur.first + el.second;
+            pq.push({-1*ncost, el.first});
+        }
+    }
+}
+
+ll dist2[MAXN][2];
+void dijakstra2(ll node, ll ind) {
+    priority_queue<pair<ll, ll>> pq;
+    pq.push({0, node});
+    
+    while (!pq.empty()) {
+        pair<ll, ll> cur = pq.top();
+        cur.first *= -1;
+
+        pq.pop();
+        
+        if (dist2[cur.second][ind] <= cur.first) {
+            continue;
+        }
+        
+        dist2[cur.second][ind] = cur.first;
+        for (auto el: adj[cur.second]) {
+            ll ncost = cur.first + el.second;
+            pq.push({-1*ncost, el.first});
+        }
+    }
+}
+
+void solve(ll ca)
+{
+    cin >> n >> m >> k;
+    vector<pair<pair<ll, ll>, ll>> edges;
+    for (ll i = 0; i < m; i++) {
+        ll u, v, w;
+        cin >> u >> v >> w;
+        u--; v--;
+        adj[u].insert({v, w});
+        adj[v].insert({u, w});
+        edges.push_back({{u, v}, w});
+    }
+    
+    for (ll i = 0; i < k; i++) {
+        ll u, v;
+        cin >> u >> v;
+        u--; v--;
+        routes.push_back({u, v});
+    }
+    
+    for (ll i = 0; i < n; i++) {
+        for (ll j = 0; j < n; j++) {
+            dist[i][j] = INF;
+        }
+        dijakstra(i);
+    }
+    
+    ll ans = 0;
+    for (auto el: routes) {
+        ans += dist[el.first][el.second];
+    }
+        
+    for (auto el: edges) {
+        adj[el.first.first].erase({el.first.second, el.second});
+        adj[el.first.second].erase({el.first.first, el.second});
+        adj[el.first.first].insert({el.first.second, 0});
+        adj[el.first.second].insert({el.first.first, 0});
+        
+        for (ll i = 0; i < n; i++) {
+            dist2[i][0] = INF;
+            dist2[i][1] = INF;
+        }
+        
+        dijakstra2(el.first.first, 0);
+        dijakstra2(el.first.second, 1);
+        
+        ll tans = 0;
+        for (auto el2: routes) {
+            ll val = min(dist[el2.first][el2.second], min(dist2[el2.first][0]+dist2[el2.second][1], dist2[el2.first][1]+dist2[el2.second][0]));
+            tans += val;
+        }
+        ans = min(ans, tans);
+        
+        adj[el.first.first].erase({el.first.second, 0});
+        adj[el.first.second].erase({el.first.first, 0});
+        adj[el.first.first].insert({el.first.second, el.second});
+        adj[el.first.second].insert({el.first.first, el.second});
+    }
+    
+    cout << ans << endl;
+}
+ 
+int main()
+{
+    mt19937 rng(0);
+    
+    //Fast IO
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cout.tie(NULL);
+ 
+    ll t = 1;
+    //cin >> t;
+    
+    ll co = 1;
+    while (t--) {
+        solve(co);
+        ++co;
+    }
+}
