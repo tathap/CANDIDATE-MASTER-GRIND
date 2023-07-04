@@ -1,0 +1,168 @@
+/*#pragma GCC optimize("Ofast,unroll-loops")
+#pragma GCC target("avx,avx2,fma")
+*/
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <vector>
+#include <stack>
+#include <queue>
+#include <math.h>
+#include <set>
+#include <map>
+#include <string>
+#include <tuple>
+#include <numeric>
+#include <climits>
+#include <bitset>
+#include <iomanip>
+#include <random>
+#include <ctime>
+ 
+using namespace std;
+ 
+//change the long long to int if you need to save memory/time really badly
+typedef long long ll;
+ 
+const ll MAXN = 2e5 + 5;
+const ll INF = 1e16;
+
+class SegmentTree{
+private:
+    ll n;
+    vector<ll> t, arr;
+    
+    ll left(ll ind) {
+        return (2*ind);
+    }
+    ll right(ll ind) {
+        return (2*ind + 1);
+    }
+
+    void build(ll ind, ll l, ll r) {
+        if (l == r) {
+            t[ind] = arr[l];
+        } else {
+            ll mid = (l + r)/2;
+            build(left(ind), l, mid);
+            build(right(ind), mid + 1, r);
+            t[ind] = max(t[left(ind)], t[right(ind)]);
+        }
+    }
+        
+    ll query(ll ind, ll tl, ll tr, ll l, ll r) {
+        if (l > r) {
+            return 0; //If dealing with gcd or smth like that, replace with 1
+        }
+        
+        if (l == tl && r == tr) {
+            return t[ind];
+        } else {
+            ll mid = (tl + tr)/2;
+            
+            if (r <= mid) {
+                return query(left(ind), tl, mid, l, min(r, mid));
+            } else if (l >= mid + 1) {
+                return query(right(ind), mid + 1, tr, max(mid + 1, l), r);
+            } else {
+                return max(query(left(ind), tl, mid, l, min(r, mid)), query(right(ind), mid + 1, tr, max(mid + 1, l), r));
+            }
+        }
+    }
+    
+    void update(ll ind, ll tl, ll tr, ll pos) {
+        if (tl == tr) {
+            t[ind] = arr[pos];
+        } else {
+            ll mid = (tl + tr)/2;
+            if (pos <= mid) {
+                update(left(ind), tl, mid, pos);
+            } else {
+                update(right(ind), mid + 1, tr, pos);
+            }
+            
+            t[ind] = max(t[left(ind)], t[right(ind)]);
+        }
+    }
+    
+public:
+    SegmentTree(const vector<ll> &_arr) {
+        arr = _arr;
+        n = (ll)arr.size();
+        t.resize(4*(n+1));
+        build(1, 0, n - 1);
+    }
+    
+    ll query(ll l, ll r) {
+        return query(1, 0, n - 1, l, r);
+    }
+    
+    void update(ll pos, ll val) {
+        arr[pos]=val;
+        update(1, 0, n - 1, pos);
+    }
+};
+
+
+void solve(ll ca)
+{
+    ll n; cin >> n;
+    ll h[n];
+    for (ll i = 0; i < n; i++) {
+        cin >> h[i];
+    }
+    ll b[n];
+    for (ll i = 0; i < n; i++) {
+        cin >> b[i];
+    }
+    
+    ll minind[n+1];
+    
+    stack<ll> st;
+    for (ll i = 1; i <= n; i++) {
+        while (st.size() > 0 && h[st.top()-1] > h[i-1]) {
+            st.pop();
+        }
+        
+        if (st.size() == 0) {
+            minind[i] = 0;
+        } else {
+            minind[i] = st.top();
+        }
+        
+        st.push(i);
+    }
+    
+    vector<ll> dp(n+1, -INF);
+    dp[0] = 0;
+    
+    SegmentTree getMin(dp);
+    for (ll i = 1; i <= n; i++) {
+        dp[i] = getMin.query(minind[i], i-1) + b[i-1];
+        if (minind[i] != 0) {
+            dp[i] = max(dp[i], dp[minind[i]]);
+        }
+        getMin.update(i, dp[i]);
+    }
+    
+    cout << dp[n] << endl;
+}
+ 
+int main()
+{
+    mt19937 rng(0);
+    
+    //Fast IO
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cout.tie(NULL);
+ 
+    ll t = 1;
+    //cin >> t;
+    
+    ll co = 1;
+    while (t--) {
+        solve(co);
+        ++co;
+    }
+}
