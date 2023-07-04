@@ -1,0 +1,101 @@
+/*#pragma GCC optimize("Ofast,unroll-loops")
+#pragma GCC target("avx,avx2,fma")
+*/
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <vector>
+#include <stack>
+#include <queue>
+#include <math.h>
+#include <set>
+#include <map>
+#include <string>
+#include <tuple>
+#include <numeric>
+#include <climits>
+#include <bitset>
+#include <iomanip>
+#include <random>
+#include <ctime>
+ 
+using namespace std;
+ 
+//change the long long to int if you need to save memory/time really badly
+typedef long long ll;
+ 
+const ll MAXN = 2e5 + 5;
+const ll INF = 1e16;
+
+void solve(ll ca)
+{
+    ll n; cin >> n;
+    ll a[n]; map<ll, vector<ll>> ma;
+    for (ll i = 0; i < n; i++) {
+        cin >> a[i];
+        ma[a[i]].push_back(i);
+    }
+    
+    ll ans = 0;
+    ll lef = -1; ll ri = -1;
+    for (ll i = 0; i < n; i++) {
+        if (a[i] == lef && a[i] == ri) {
+            continue;
+        }
+        
+        if (a[i] == lef) {
+            ri = a[i];
+            ans++;
+            continue;
+        }
+        
+        if (a[i] == ri) {
+            lef = a[i];
+            ans++;
+            continue;
+        }
+        
+        ll id1 = upper_bound(ma[lef].begin(), ma[lef].end(), i) - ma[lef].begin();
+        ll id2 = upper_bound(ma[ri].begin(), ma[ri].end(), i) - ma[ri].begin();
+        
+        if (id1 == ma[lef].size() && id2 == ma[ri].size()) {
+            lef = a[i];
+            ans++;
+        } else if (id1 == ma[lef].size()) {
+            ri = a[i];
+            ans++;
+        } else if (id2 == ma[ri].size()) {
+            lef = a[i];
+            ans++;
+        } else {
+            if (ma[lef][id1] < ma[ri][id2]) {
+                lef = a[i];
+                ans++;
+            } else {
+                ri = a[i];
+                ans++;
+            }
+        }
+    }
+    
+    cout << ans << endl;
+}
+ 
+int main()
+{
+    mt19937 rng(0);
+    
+    //Fast IO
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cout.tie(NULL);
+ 
+    ll t = 1;
+    //cin >> t;
+    
+    ll co = 1;
+    while (t--) {
+        solve(co);
+        ++co;
+    }
+}
