@@ -1,0 +1,104 @@
+/*#pragma GCC optimize("Ofast,unroll-loops")
+#pragma GCC target("avx,avx2,fma")
+*/
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <vector>
+#include <stack>
+#include <queue>
+#include <math.h>
+#include <set>
+#include <map>
+#include <string>
+#include <tuple>
+#include <numeric>
+#include <climits>
+#include <bitset>
+#include <iomanip>
+#include <random>
+#include <ctime>
+ 
+using namespace std;
+ 
+//change the long long to int if you need to save memory/time really badly
+typedef long long ll;
+ 
+const ll MAXN = 2e5 + 5;
+const ll INF = 1e16;
+
+void solve(ll ca)
+{
+    ll n, m;
+    cin >> n >> m;
+    
+    set<ll> se; map<ll, vector<ll>> rows;
+    for (ll i = 0; i < m; i++) {
+        ll le, ri; cin >> le >> ri;
+        le--; ri--;
+        se.insert(ri);
+        rows[ri].push_back(le);
+    }
+    
+    se.insert(n);
+    rows[n].push_back(0);
+    rows[n].push_back(1);
+    
+    
+    vector<ll> cols;
+    for (auto el: se) {
+        cols.push_back(el);
+    }
+    sort(cols.begin(), cols.end());
+    
+    for (ll i = 0; i < cols.size()-1; i++) {
+        if (rows[cols[i]].size() == 2) {
+            //blocked
+            continue;
+        }
+        
+        if (rows[cols[i]].size() == 1) {
+            ll dist = cols[i+1]-cols[i];
+            if (rows[cols[i+1]].size() == 1) {
+                if (rows[cols[i+1]][0] == rows[cols[i]][0]) {
+                    if (dist%2 == 0) {
+                        cout << "NO" << endl;
+                        return;
+                    } else {
+                        rows[cols[i+1]].push_back(1-rows[cols[i+1]][0]);
+                    }
+                } else {
+                    if (dist%2 == 0) {
+                        rows[cols[i+1]].push_back(1-rows[cols[i+1]][0]);
+                    } else {
+                        cout << "NO" << endl;
+                        return;
+                    }
+                }
+            } else {
+                cout << "NO" << endl;
+                return;
+            }
+        }
+    }
+    cout << "YES" << endl;
+}
+ 
+int main()
+{
+    mt19937 rng(0);
+    
+    //Fast IO
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cout.tie(NULL);
+ 
+    ll t = 1;
+    cin >> t;
+    
+    ll co = 1;
+    while (t--) {
+        solve(co);
+        ++co;
+    }
+}
