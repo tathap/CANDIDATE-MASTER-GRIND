@@ -1,0 +1,324 @@
+/*#pragma GCC optimize("Ofast,unroll-loops")
+#pragma GCC target("avx,avx2,fma")
+*/
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <vector>
+#include <stack>
+#include <queue>
+#include <math.h>
+#include <set>
+#include <map>
+#include <string>
+#include <tuple>
+#include <numeric>
+#include <climits>
+#include <bitset>
+#include <iomanip>
+#include <random>
+#include <ctime>
+ 
+using namespace std;
+ 
+//change the long long to int if you need to save memory/time really badly
+typedef long long ll;
+ 
+const ll MAXN = 2e5 + 5;
+const ll INF = 1e16;
+
+class getMin{
+private:
+    ll n;
+    vector<ll> t, arr;
+    
+    ll left(ll ind) {
+        return (2*ind);
+    }
+    ll right(ll ind) {
+        return (2*ind + 1);
+    }
+
+    void build(ll ind, ll l, ll r) {
+        if (l == r) {
+            t[ind] = arr[l];
+        } else {
+            ll mid = (l + r)/2;
+            build(left(ind), l, mid);
+            build(right(ind), mid + 1, r);
+            t[ind] = min(t[left(ind)], t[right(ind)]);
+        }
+    }
+        
+    ll query(ll ind, ll tl, ll tr, ll l, ll r) {
+        if (l > r) {
+            return 0; //If dealing with gcd or smth like that, replace with 1
+        }
+        
+        if (l == tl && r == tr) {
+            return t[ind];
+        } else {
+            ll mid = (tl + tr)/2;
+            
+            if (r <= mid) {
+                return query(left(ind), tl, mid, l, min(r, mid));
+            } else if (l >= mid + 1) {
+                return query(right(ind), mid + 1, tr, max(mid + 1, l), r);
+            } else {
+                return min(query(left(ind), tl, mid, l, min(r, mid)), query(right(ind), mid + 1, tr, max(mid + 1, l), r));
+            }
+        }
+    }
+
+    void update(ll ind, ll tl, ll tr, ll pos) {
+        if (tl == tr) {
+            t[ind] = arr[pos];
+        } else {
+            ll mid = (tl + tr)/2;
+            if (pos <= mid) {
+                update(left(ind), tl, mid, pos);
+            } else {
+                update(right(ind), mid + 1, tr, pos);
+            }
+            
+            t[ind] = min(t[left(ind)], t[right(ind)]);
+        }
+    }
+
+public:
+    getMin(const vector<ll> &_arr) {
+        arr = _arr;
+        n = (ll)arr.size();
+        t.resize(4*(n+1));
+        build(1, 0, n - 1);
+    }
+    
+    ll query(ll l, ll r) {
+        return query(1, 0, n - 1, l, r);
+    }
+    
+    void update(ll pos, ll val) {
+        arr[pos]=val;
+        update(1, 0, n - 1, pos);
+    }
+};
+
+
+void compress(ll& n, vector<ll>& a) {
+    vector<ll> b = a;
+    sort(b.begin(), b.end());
+    
+    ll c = 1;
+    map<ll, ll> compres;
+    compres[b[0]] = 1;
+    
+    for (ll i = 1; i < n; i++) {
+        if (b[i] != b[i-1]) {
+            compres[b[i]] = c+1;
+            ++c;
+        }
+    }
+    
+    for (ll i = 0; i < n; i++) {
+        a[i] = compres[a[i]];
+    }
+}
+
+class getMax{
+private:
+    ll n;
+    vector<ll> t, arr;
+    
+    ll left(ll ind) {
+        return (2*ind);
+    }
+    ll right(ll ind) {
+        return (2*ind + 1);
+    }
+
+    void build(ll ind, ll l, ll r) {
+        if (l == r) {
+            t[ind] = arr[l];
+        } else {
+            ll mid = (l + r)/2;
+            build(left(ind), l, mid);
+            build(right(ind), mid + 1, r);
+            t[ind] = max(t[left(ind)], t[right(ind)]);
+        }
+    }
+        
+    ll query(ll ind, ll tl, ll tr, ll l, ll r) {
+        if (l > r) {
+            return 0; //If dealing with gcd or smth like that, replace with 1
+        }
+        
+        if (l == tl && r == tr) {
+            return t[ind];
+        } else {
+            ll mid = (tl + tr)/2;
+            
+            if (r <= mid) {
+                return query(left(ind), tl, mid, l, min(r, mid));
+            } else if (l >= mid + 1) {
+                return query(right(ind), mid + 1, tr, max(mid + 1, l), r);
+            } else {
+                return max(query(left(ind), tl, mid, l, min(r, mid)), query(right(ind), mid + 1, tr, max(mid + 1, l), r));
+            }
+        }
+    }
+    
+    void update(ll ind, ll tl, ll tr, ll pos) {
+        if (tl == tr) {
+            t[ind] = arr[pos];
+        } else {
+            ll mid = (tl + tr)/2;
+            if (pos <= mid) {
+                update(left(ind), tl, mid, pos);
+            } else {
+                update(right(ind), mid + 1, tr, pos);
+            }
+            
+            t[ind] = max(t[left(ind)], t[right(ind)]);
+        }
+    }
+    
+public:
+    getMax(const vector<ll> &_arr) {
+        arr = _arr;
+        n = (ll)arr.size();
+        t.resize(4*(n+1));
+        build(1, 0, n - 1);
+    }
+    
+    ll query(ll l, ll r) {
+        return query(1, 0, n - 1, l, r);
+    }
+    
+    void update(ll pos, ll val) {
+        arr[pos]=val;
+        update(1, 0, n - 1, pos);
+    }
+};
+
+
+void solve(ll ca)
+{
+    ll n; cin >> n;
+    vector<ll> a(n);
+    
+    for (ll i = 0; i < n; i++) {
+        cin >> a[i];
+    }
+    
+    compress(n, a);
+    
+    /*
+    for (ll i = 0; i < n; i++) {
+        cout << a[i] << " ";
+    }
+    cout << endl;*/
+    
+    map<ll, vector<ll>> rev;
+    for (ll i = 0; i < n; i++) {
+        rev[a[i]].push_back(i);
+    }
+
+    ll maxi[n];
+    for (ll i = n-1; i >= 0; i--) {
+        if (i == n-1) {
+            maxi[i] = a[i];
+        } else {
+            maxi[i] = max(maxi[i+1], a[i]);
+        }
+    }
+    
+    ll precompute1[n];
+    vector<ll> v(n+5, INF);
+    getMin prc1(v);
+    
+    for (ll i = n-1; i >= 0; i--) {
+        precompute1[i] = prc1.query(0, a[i]-1);
+        prc1.update(a[i], i);
+    }
+    
+    ll precompute2[n];
+    v.clear(); v.resize(n+5, -1);
+    getMax prc2(v);
+    
+    for (ll i = 0; i < n; i++) {
+        precompute2[i] = prc2.query(a[i]+1, n+4);
+        prc2.update(a[i], i);
+    }
+    
+    getMin gm(a);
+    
+    ll pref = -INF;
+    for (ll i = 0; i < n; i++) {
+        pref = max(pref, a[i]);
+        
+        ll ind = upper_bound(rev[pref].begin(), rev[pref].end(), i) - rev[pref].begin();
+        ll extra = rev[pref].size() - ind;
+        if (extra < 2) {
+            continue;
+        }
+                
+        if (gm.query(i+1, rev[pref][ind]) < pref) {
+            continue;
+        }
+        
+        if (maxi[rev[pref].back()] > pref) {
+            continue;
+        }
+            
+        ll ind1 = precompute1[rev[pref][ind]];
+        ll ind2 = precompute2[rev[pref].back()];
+        
+        /*if (i == 5) {
+            cout << pref << " " << ind << " " << rev[pref][ind] << endl;
+            cout << ind1 << " " << ind2 << endl;
+        }
+        */
+        if (ind2 < rev[pref][ind]) {
+            cout << "YES" << endl;
+            ll x = i+1; ll y = rev[pref][ind]-i; ll z = n-rev[pref][ind]-1;
+            cout << x << " " << y << " " << z << endl;
+            return;
+        }
+        if (ind1 > rev[pref].back()) {
+            cout << "YES" << endl;
+            ll x = i+1; ll y = rev[pref].back()-i-1; ll z = n-rev[pref].back();
+            cout << x << " " << y << " " << z << endl;
+            return;
+        }
+        if (ind1 > ind2) {
+            cout << "YES" << endl;
+            ll x = i+1; ll y = ind2-i; ll z = n-ind2-1;
+            cout << x << " " << y << " " << z << endl;
+            return;
+        }
+        
+        //first section is from [0, i]
+        //middle section is from [i+1, rev[pref][ind1]]
+        //final section is from [rev[pref].back(), n-1]
+    }
+    cout << "NO" << endl;
+}
+ 
+int main()
+{
+    mt19937 rng(0);
+    
+    //Fast IO
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cout.tie(NULL);
+ 
+    ll t = 1;
+    cin >> t;
+    
+    ll co = 1;
+    while (t--) {
+        solve(co);
+        ++co;
+    }
+}
